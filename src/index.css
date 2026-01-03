@@ -1,68 +1,36 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+/* Fonts (best-effort). If these URLs don't work in your environment, keep the font-family fallbacks. */
+@import url("https://api.fontshare.com/v2/css?f[]=twk-lausanne@500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500&display=swap");
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+:root{
+  --ethica-dark:#10241B;
+  --ethica-accent:#82BF98;
+  --ethica-soft:#C8E3D2;
+  --ethica-warm:#F4F0E9;
+
+  --h1: 74px; --h1-lh: 74px;
+  --h2: 34px; --h2-lh: 38px;
+  --h3: 26px; --h3-lh: 30px;
+  --h4: 20px; --h4-lh: 24px;
+  --body: 16px; --body-lh: 22px;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
+html, body { background: var(--ethica-warm); }
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  font-family: Geist, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans";
+  color: var(--ethica-dark);
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
+.ethica-h1{ font-family:"TWK Lausanne", system-ui; font-weight:500; font-size:var(--h1); line-height:var(--h1-lh); letter-spacing:-0.02em; }
+.ethica-h2{ font-family:"TWK Lausanne", system-ui; font-weight:500; font-size:var(--h2); line-height:var(--h2-lh); letter-spacing:-0.02em; }
+.ethica-h3{ font-family:"TWK Lausanne", system-ui; font-weight:500; font-size:var(--h3); line-height:var(--h3-lh); letter-spacing:-0.02em; }
+.ethica-h4{ font-family:"TWK Lausanne", system-ui; font-weight:500; font-size:var(--h4); line-height:var(--h4-lh); letter-spacing:-0.02em; }
+.ethica-body{ font-family:Geist, system-ui; font-weight:400; font-size:var(--body); line-height:var(--body-lh); letter-spacing:0.01em; }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
+a { color: inherit; text-decoration: none; }
+a:hover { opacity: 0.85; }
