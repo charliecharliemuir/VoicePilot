@@ -91,6 +91,7 @@ export function SharedFooter() {
                 <a href="#how" className="hover:opacity-70">How It Works</a>
                 <a href="#workflows" className="hover:opacity-70">Workflows</a>
                 <a href="#compliance" className="hover:opacity-70">Compliance</a>
+                <a href="/broker" className="hover:opacity-70">For Brokerages</a>
               </nav>
             </div>
             <div>
