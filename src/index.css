@@ -1,6 +1,8 @@
 /* Fonts (best-effort). If these URLs don't work in your environment, keep the font-family fallbacks. */
 @import url("https://api.fontshare.com/v2/css?f[]=twk-lausanne@500&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500&display=swap");
+/* V3 fonts - friendly, human-centric */
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Source+Sans+3:wght@400;500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
