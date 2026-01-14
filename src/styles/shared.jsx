@@ -88,17 +88,12 @@ export function SharedFooter() {
             <div>
               <h4 className="text-sm font-medium opacity-60 mb-3 sm:mb-4">Product</h4>
               <nav className="flex flex-col gap-2 sm:gap-3 text-sm">
-                <a href="#how" className="hover:opacity-70">How It Works</a>
-                <a href="#workflows" className="hover:opacity-70">Workflows</a>
-                <a href="#compliance" className="hover:opacity-70">Compliance</a>
                 <a href="/broker" className="hover:opacity-70">For Brokerages</a>
               </nav>
             </div>
             <div>
               <h4 className="text-sm font-medium opacity-60 mb-3 sm:mb-4">Company</h4>
               <nav className="flex flex-col gap-2 sm:gap-3 text-sm">
-                <a href="https://heyethica.com/about" className="hover:opacity-70">About</a>
-                <a href="#" className="hover:opacity-70">Press</a>
                 <a href="#" className="hover:opacity-70">Contact</a>
               </nav>
             </div>
@@ -107,11 +102,24 @@ export function SharedFooter() {
           {/* Tagline */}
           <div className="lg:col-span-6 lg:text-right mt-4 sm:mt-0">
             <p className="ethica-h2">
-              Transact smarter
+              Say it.
               <br />
-              <span style={{ color: TOKENS.accent }}>with voice</span>
+              Sign it.
+              <br />
+              <span style={{ color: TOKENS.accent }}>Send it.</span>
             </p>
           </div>
+        </div>
+
+        {/* C.A.R. Partnership */}
+        <div className="mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-white/10">
+          <a
+            href="/CARpartnership"
+            className="inline-flex items-center gap-4 transition-opacity hover:opacity-80"
+          >
+            <img src="/car-logo.png" alt="C.A.R." className="h-8 rounded" />
+            <span className="text-sm opacity-70">Strategic investment from REBS (C.A.R.)</span>
+          </a>
         </div>
 
         {/* Bottom row */}

@@ -62,20 +62,34 @@ export default function BrokerWaitlist() {
             <span className="text-sm sm:text-base opacity-90 font-medium tracking-tight hidden sm:inline">VoicePilot</span>
           </Link>
 
-          <Link
-            to="/"
-            className="h-10 px-5 rounded-full text-sm font-medium flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
-            style={{
-              background: "rgba(255,255,255,0.3)",
-              border: "1px solid rgba(255,255,255,0.4)",
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 19 5 12 12 5" />
-            </svg>
-            Back
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              to="/CARpartnership"
+              className="text-sm font-medium opacity-60 hover:opacity-100 transition-opacity"
+            >
+              C.A.R. + Ethica
+            </Link>
+            <Link
+              to="/"
+              className="h-10 px-5 rounded-full text-sm font-medium flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              style={{
+                background: "rgba(255,255,255,0.3)",
+                border: "1px solid rgba(255,255,255,0.4)",
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="19" y1="12" x2="5" y2="12" />
+                <polyline points="12 19 5 12 12 5" />
+              </svg>
+              Back
+            </Link>
+            <a
+              href="https://heyethica.com"
+              className="text-sm font-medium opacity-60 hover:opacity-100 transition-opacity"
+            >
+              Ethica Video
+            </a>
+          </div>
         </div>
       </header>
 
@@ -94,31 +108,6 @@ export default function BrokerWaitlist() {
               Give every agent in your brokerage access to VoicePilot. Reduce admin burden,
               improve compliance, and let your team focus on what they do best.
             </p>
-          </div>
-
-          {/* Pricing Highlight */}
-          <div
-            className="p-6 sm:p-8 rounded-2xl mb-10"
-            style={{
-              background: "rgba(130,191,152,0.15)",
-              border: "1px solid rgba(130,191,152,0.3)",
-            }}
-          >
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h3 className="ethica-h4">Broker Pricing</h3>
-                <p className="ethica-body mt-1" style={{ opacity: 0.7 }}>
-                  Volume pricing for your entire team
-                </p>
-              </div>
-              <div className="text-left sm:text-right">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl sm:text-4xl font-semibold" style={{ color: TOKENS.dark }}>$10</span>
-                  <span className="text-sm opacity-60">/agent/month</span>
-                </div>
-                <p className="text-xs mt-1 opacity-50">+ discounted per-transaction TC fees</p>
-              </div>
-            </div>
           </div>
 
           {/* Form */}

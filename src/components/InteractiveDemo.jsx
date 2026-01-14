@@ -43,12 +43,22 @@ const DEMO_SCENARIOS = [
 // Advisory & conversational scenarios - showcasing AI intelligence
 const ADVISORY_SCENARIOS = [
   {
+    id: "compare",
+    label: "Compare two offers",
+    category: "Comparison",
+    userMessage: "I have two offers on the table. Can you compare them?",
+    assistantResponse: "I've pulled up both offers for comparison. Here's a side-by-side breakdown:",
+    insight: { type: "analysis", label: "Offer comparison" },
+    showComparison: true,
+  },
+  {
     id: "counter",
-    label: "Handle counter-offer",
+    label: "Counter the offer",
     category: "Advisory",
-    userMessage: "The seller countered at $875,000. What are my options?",
-    assistantResponse: "You have three main paths: (1) Accept at $875K — that's 2.9% above your offer, well within typical negotiation range. (2) Counter back — market data shows similar homes closed at $860K median, giving you leverage. (3) Walk away if it exceeds your client's ceiling. Want me to draft a counter at $865K with a quick-close incentive?",
+    userMessage: "I want to counter Offer A. What should I propose for inspection days?",
+    assistantResponse: "Based on market data, 10-14 day inspections are typical for this area. The buyer offered 17 days — you could counter at 12 days for a faster timeline. Use the slider to set your preferred inspection period:",
     insight: { type: "analysis", label: "Counter-offer strategy" },
+    showCounter: true,
   },
   {
     id: "contingency",
@@ -60,14 +70,6 @@ const ADVISORY_SCENARIOS = [
     insight: { type: "form", label: "Contingency added" },
   },
   {
-    id: "emd",
-    label: "EMD guidance",
-    category: "Knowledge",
-    userMessage: "What's a typical EMD in California?",
-    assistantResponse: "In California, earnest money deposits typically range from 1-3% of purchase price. For a $875K home, that's $8,750 to $26,250. Competitive markets often see 3%+. Your current transaction has 3% ($13,500) — right in the sweet spot for showing serious intent without overcommitting.",
-    insight: { type: "knowledge", label: "CA market insight" },
-  },
-  {
     id: "deadlines",
     label: "Track deadlines",
     category: "Timeline",
@@ -75,6 +77,44 @@ const ADVISORY_SCENARIOS = [
     assistantResponse: "For this transaction, here are your critical dates: Inspection contingency (Jan 16) — 9 days away. Financing contingency (Jan 27) — 20 days. Appraisal typically due 21 days from acceptance. Final walkthrough 3-5 days before close. Want me to set up automatic reminders for these?",
     insight: { type: "timeline", label: "4 key deadlines" },
   },
+];
+
+// Sample offer data for comparison
+const OFFER_DATA = {
+  offerA: {
+    name: "Offer A",
+    buyer: "Johnson Family",
+    price: 875000,
+    emd: 26250,
+    emdPercent: 3,
+    inspectionDays: 17,
+    financingDays: 21,
+    closeDate: "Feb 15, 2026",
+    preApproval: true,
+    escalation: false,
+    notes: "Flexible on close date",
+  },
+  offerB: {
+    name: "Offer B",
+    buyer: "Tech Corp LLC",
+    price: 860000,
+    emd: 34400,
+    emdPercent: 4,
+    inspectionDays: 10,
+    financingDays: 14,
+    closeDate: "Feb 1, 2026",
+    preApproval: true,
+    escalation: true,
+    notes: "Cash-ready, quick close",
+  },
+};
+
+// Counter offer timeline data
+const COUNTER_TIMELINE = [
+  { date: "Jan 6", event: "Original Offer A", price: "$850,000", type: "buyer" },
+  { date: "Jan 8", event: "Your Counter #1", price: "$890,000", type: "seller" },
+  { date: "Jan 10", event: "Buyer Counter #2", price: "$875,000", type: "buyer" },
+  { date: "Now", event: "Your Response", price: "Pending", type: "pending" },
 ];
 
 export default function InteractiveDemo() {
@@ -91,6 +131,7 @@ export default function InteractiveDemo() {
   const [transactionData, setTransactionData] = useState({});
   const [isListening, setIsListening] = useState(false);
   const [pulseKey, setPulseKey] = useState(0);
+  const [counterInspectionDays, setCounterInspectionDays] = useState(14);
   const containerRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -109,52 +150,43 @@ export default function InteractiveDemo() {
   const handleScenarioClick = async (scenario) => {
     if (usedScenarios.includes(scenario.id) || isTyping) return;
 
-    // Trigger listening animation
     setIsListening(true);
     setPulseKey((k) => k + 1);
 
-    // Add user message after a brief "listening" delay
     await new Promise((r) => setTimeout(r, 800));
     setIsListening(false);
 
     setMessages((prev) => [...prev, { role: "user", content: scenario.userMessage }]);
     setUsedScenarios((prev) => [...prev, scenario.id]);
 
-    // Simulate AI processing
     setIsTyping(true);
     await new Promise((r) => setTimeout(r, 1200 + Math.random() * 800));
     setIsTyping(false);
 
-    // Add assistant response
     setMessages((prev) => [
       ...prev,
       { role: "assistant", content: scenario.assistantResponse, structuredData: scenario.structuredData },
     ]);
 
-    // Update transaction data
     setTransactionData((prev) => ({ ...prev, ...scenario.structuredData }));
   };
 
   const handleAdvisoryClick = async (scenario) => {
     if (usedAdvisory.includes(scenario.id) || isTyping) return;
 
-    // Trigger listening animation
     setIsListening(true);
     setPulseKey((k) => k + 1);
 
-    // Add user message after a brief "listening" delay
     await new Promise((r) => setTimeout(r, 800));
     setIsListening(false);
 
     setMessages((prev) => [...prev, { role: "user", content: scenario.userMessage }]);
     setUsedAdvisory((prev) => [...prev, scenario.id]);
 
-    // Simulate AI processing - advisory takes a bit longer (more "thinking")
     setIsTyping(true);
     await new Promise((r) => setTimeout(r, 1500 + Math.random() * 1000));
     setIsTyping(false);
 
-    // Add assistant response with insight badge
     setMessages((prev) => [
       ...prev,
       { 
@@ -162,10 +194,11 @@ export default function InteractiveDemo() {
         content: scenario.assistantResponse, 
         structuredData: scenario.structuredData,
         insight: scenario.insight,
+        showComparison: scenario.showComparison,
+        showCounter: scenario.showCounter,
       },
     ]);
 
-    // Update transaction data if any
     if (scenario.structuredData) {
       setTransactionData((prev) => ({ ...prev, ...scenario.structuredData }));
     }
@@ -184,19 +217,17 @@ export default function InteractiveDemo() {
     setTransactionData({});
     setIsTyping(false);
     setIsListening(false);
+    setCounterInspectionDays(14);
   };
 
   const availableScenarios = DEMO_SCENARIOS.filter((s) => !usedScenarios.includes(s.id));
-  const nextScenario = DEMO_SCENARIOS.find((s) => !usedScenarios.includes(s.id));
   const availableAdvisory = ADVISORY_SCENARIOS.filter((s) => !usedAdvisory.includes(s.id));
   
-  // Combine all available prompts into one unified list
   const allAvailablePrompts = [
     ...availableScenarios.map(s => ({ ...s, type: 'transaction' })),
     ...availableAdvisory.map(s => ({ ...s, type: 'advisory' })),
   ];
   const hasMorePrompts = allAvailablePrompts.length > 0;
-  const totalUsed = usedScenarios.length + usedAdvisory.length;
 
   return (
     <div className="relative max-w-5xl mx-auto">
@@ -208,7 +239,7 @@ export default function InteractiveDemo() {
             style={{
               background: "rgba(255,255,255,0.85)",
               boxShadow: "0 20px 60px rgba(16,36,27,0.12), 0 0 0 1px rgba(16,36,27,0.04)",
-              height: "460px",
+              height: "520px",
             }}
           >
             {/* Header */}
@@ -229,7 +260,7 @@ export default function InteractiveDemo() {
                 <p className="text-sm font-semibold" style={{ color: TOKENS.dark }}>Ethica</p>
               </div>
 
-              {usedScenarios.length > 0 && (
+              {(usedScenarios.length > 0 || usedAdvisory.length > 0) && (
                 <button
                   onClick={handleReset}
                   className="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:scale-105 active:scale-95"
@@ -247,13 +278,18 @@ export default function InteractiveDemo() {
               style={{ scrollbarWidth: "thin" }}
             >
               {messages.map((msg, idx) => (
-                <MessageBubble key={idx} message={msg} />
+                <MessageBubble 
+                  key={idx} 
+                  message={msg} 
+                  inspectionDays={counterInspectionDays}
+                  onInspectionChange={setCounterInspectionDays}
+                />
               ))}
 
               {isTyping && <TypingIndicator />}
             </div>
 
-            {/* Scenario buttons / Input area */}
+            {/* Scenario buttons */}
             <div
               className="px-5 py-3"
               style={{ borderTop: "1px solid rgba(16,36,27,0.06)", background: "rgba(244,240,233,0.5)" }}
@@ -261,7 +297,6 @@ export default function InteractiveDemo() {
               {hasMorePrompts ? (
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-[10px] opacity-50 font-medium tracking-wide uppercase">Try saying:</p>
-                  {/* Show mix of transaction and advisory prompts */}
                   {allAvailablePrompts.slice(0, 3).map((scenario, idx) => {
                     const isTransaction = scenario.type === 'transaction';
                     const isFirst = idx === 0;
@@ -271,14 +306,17 @@ export default function InteractiveDemo() {
                         key={scenario.id}
                         onClick={() => isTransaction ? handleScenarioClick(scenario) : handleAdvisoryClick(scenario)}
                         disabled={isTyping || isListening}
-                        className="group relative px-3 py-2 rounded-xl text-xs font-medium transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+                        className={`group relative px-3 py-2 rounded-xl text-xs font-medium transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed ${isFirst ? 'demo-pulse-hint' : ''}`}
                         style={{
                           background: isFirst ? TOKENS.accent : "rgba(16,36,27,0.06)",
                           color: isFirst ? "white" : TOKENS.dark,
                           boxShadow: isFirst ? "0 4px 12px rgba(130,191,152,0.3)" : "none",
                         }}
                       >
-                        <span className="flex items-center gap-1.5">
+                        {isFirst && (
+                          <span className="absolute inset-0 rounded-xl animate-demo-ping" style={{ background: TOKENS.accent }} />
+                        )}
+                        <span className="relative flex items-center gap-1.5">
                           {isTransaction ? (
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.7">
                               <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
@@ -292,6 +330,15 @@ export default function InteractiveDemo() {
                       </button>
                     );
                   })}
+                  <style>{`
+                    @keyframes demo-ping {
+                      0% { transform: scale(1); opacity: 0.5; }
+                      75%, 100% { transform: scale(1.15); opacity: 0; }
+                    }
+                    .animate-demo-ping {
+                      animation: demo-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+                    }
+                  `}</style>
                 </div>
               ) : (
                 <div className="flex items-center justify-between">
@@ -319,12 +366,11 @@ export default function InteractiveDemo() {
             </div>
           </div>
 
-          {/* Listening overlay */}
           {isListening && <ListeningOverlay key={pulseKey} />}
         </div>
 
-        {/* Transaction Form - Right side */}
-        <div className="lg:col-span-2" style={{ height: "460px" }}>
+        {/* Right Panel - Transaction Form */}
+        <div className="lg:col-span-2" style={{ height: "520px" }}>
           <TransactionSummary data={transactionData} hasData={Object.keys(transactionData).length > 0} />
         </div>
       </div>
@@ -332,7 +378,346 @@ export default function InteractiveDemo() {
   );
 }
 
-// Icons for different advisory categories
+// ============================================
+// INLINE COMPARISON CHART (in chat)
+// ============================================
+
+function InlinComparisonChart() {
+  const formatCurrency = (num) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num);
+  };
+
+  const offerA = OFFER_DATA.offerA;
+  const offerB = OFFER_DATA.offerB;
+
+  const compareFields = [
+    { label: "Price", keyA: formatCurrency(offerA.price), keyB: formatCurrency(offerB.price), better: offerA.price > offerB.price ? "A" : "B" },
+    { label: "EMD", keyA: `${formatCurrency(offerA.emd)} (${offerA.emdPercent}%)`, keyB: `${formatCurrency(offerB.emd)} (${offerB.emdPercent}%)`, better: offerB.emdPercent > offerA.emdPercent ? "B" : "A" },
+    { label: "Inspection", keyA: `${offerA.inspectionDays} days`, keyB: `${offerB.inspectionDays} days`, better: offerA.inspectionDays > offerB.inspectionDays ? "B" : "A" },
+    { label: "Financing", keyA: `${offerA.financingDays} days`, keyB: `${offerB.financingDays} days`, better: offerA.financingDays > offerB.financingDays ? "B" : "A" },
+    { label: "Close Date", keyA: offerA.closeDate, keyB: offerB.closeDate, better: null },
+    { label: "Pre-Approval", keyA: offerA.preApproval ? "Yes" : "No", keyB: offerB.preApproval ? "Yes" : "No", better: null },
+    { label: "Escalation", keyA: offerA.escalation ? "Yes" : "No", keyB: offerB.escalation ? "Yes" : "No", better: offerB.escalation ? "B" : null },
+  ];
+
+  return (
+    <div 
+      className="mt-3 rounded-2xl overflow-hidden"
+      style={{ 
+        background: "white",
+        border: `1px solid rgba(16,36,27,0.08)`,
+        boxShadow: "0 4px 12px rgba(16,36,27,0.06)",
+      }}
+    >
+      {/* Header */}
+      <div 
+        className="px-4 py-2.5 flex items-center gap-2"
+        style={{ background: TOKENS.dark }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={TOKENS.soft} strokeWidth="2">
+          <rect x="2" y="3" width="8" height="18" rx="1" />
+          <rect x="14" y="3" width="8" height="18" rx="1" />
+        </svg>
+        <span className="text-xs font-semibold text-white">Offer Comparison</span>
+      </div>
+
+      {/* Offer Labels */}
+      <div className="grid grid-cols-3 gap-1 px-3 pt-3 pb-2">
+        <div className="text-[9px] font-medium uppercase tracking-wider opacity-40 pl-1">Field</div>
+        <div 
+          className="text-center py-1.5 px-2 rounded-lg"
+          style={{ background: `rgba(16,36,27,0.04)` }}
+        >
+          <p className="text-[10px] font-bold" style={{ color: TOKENS.dark }}>Offer A</p>
+          <p className="text-[8px] opacity-50">{offerA.buyer}</p>
+        </div>
+        <div 
+          className="text-center py-1.5 px-2 rounded-lg"
+          style={{ background: `rgba(130,191,152,0.1)` }}
+        >
+          <p className="text-[10px] font-bold" style={{ color: TOKENS.dark }}>Offer B</p>
+          <p className="text-[8px] opacity-50">{offerB.buyer}</p>
+        </div>
+      </div>
+
+      {/* Comparison Rows */}
+      <div className="px-3 pb-3 space-y-1">
+        {compareFields.map((field, idx) => (
+          <div 
+            key={field.label}
+            className="grid grid-cols-3 gap-1 items-center py-1.5 px-2 rounded-lg"
+            style={{ background: idx % 2 === 0 ? "rgba(16,36,27,0.02)" : "transparent" }}
+          >
+            <span className="text-[10px] font-medium opacity-60">{field.label}</span>
+            <div 
+              className={`text-center text-[10px] font-semibold py-1 px-1.5 rounded-md`}
+              style={{ 
+                background: field.better === "A" ? `rgba(130,191,152,0.15)` : "transparent",
+                color: field.better === "A" ? TOKENS.dark : TOKENS.dark,
+              }}
+            >
+              {field.keyA}
+              {field.better === "A" && <span className="ml-1" style={{ color: TOKENS.accent }}>✓</span>}
+            </div>
+            <div 
+              className={`text-center text-[10px] font-semibold py-1 px-1.5 rounded-md`}
+              style={{ 
+                background: field.better === "B" ? `rgba(130,191,152,0.15)` : "transparent",
+                color: field.better === "B" ? TOKENS.dark : TOKENS.dark,
+              }}
+            >
+              {field.keyB}
+              {field.better === "B" && <span className="ml-1" style={{ color: TOKENS.accent }}>✓</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Notes */}
+      <div className="px-3 pb-3">
+        <div className="grid grid-cols-2 gap-2">
+          <div className="p-2 rounded-lg" style={{ background: "rgba(16,36,27,0.03)" }}>
+            <p className="text-[9px] font-semibold opacity-60">Offer A Note</p>
+            <p className="text-[9px] opacity-50 mt-0.5">{offerA.notes}</p>
+          </div>
+          <div className="p-2 rounded-lg" style={{ background: "rgba(130,191,152,0.08)" }}>
+            <p className="text-[9px] font-semibold opacity-60">Offer B Note</p>
+            <p className="text-[9px] opacity-50 mt-0.5">{offerB.notes}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Summary */}
+      <div 
+        className="px-3 py-2.5 flex items-center gap-2"
+        style={{ background: "rgba(244,240,233,0.6)", borderTop: "1px solid rgba(16,36,27,0.04)" }}
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={TOKENS.accent} strokeWidth="2">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+        <span className="text-[10px] opacity-60">Offer A: higher price • Offer B: faster close, more EMD</span>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// INLINE COUNTER COMPONENT (in chat)
+// ============================================
+
+function InlineCounterComponent({ inspectionDays, onInspectionChange }) {
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const handleSave = () => {
+    setShowConfirm(true);
+    setTimeout(() => setShowConfirm(false), 2000);
+  };
+
+  return (
+    <div 
+      className="mt-3 rounded-2xl overflow-hidden"
+      style={{ 
+        background: "white",
+        border: `1px solid rgba(16,36,27,0.08)`,
+        boxShadow: "0 4px 12px rgba(16,36,27,0.06)",
+      }}
+    >
+      {/* Header */}
+      <div 
+        className="px-4 py-2.5 flex items-center gap-2"
+        style={{ background: TOKENS.dark }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={TOKENS.soft} strokeWidth="2">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+        </svg>
+        <span className="text-xs font-semibold text-white">Counter Offer Builder</span>
+      </div>
+
+      {/* Timeline */}
+      <div className="px-4 py-3" style={{ borderBottom: "1px solid rgba(16,36,27,0.04)" }}>
+        <p className="text-[9px] font-semibold uppercase tracking-wider opacity-40 mb-2">Negotiation Timeline</p>
+        <div className="relative">
+          <div 
+            className="absolute left-[5px] top-2 bottom-2 w-0.5"
+            style={{ background: "rgba(16,36,27,0.08)" }}
+          />
+          <div className="space-y-2">
+            {COUNTER_TIMELINE.map((item, idx) => (
+              <div key={idx} className="flex items-center gap-2.5 relative">
+                <div 
+                  className="w-3 h-3 rounded-full z-10 flex-shrink-0"
+                  style={{ 
+                    background: item.type === "seller" ? TOKENS.accent : 
+                               item.type === "buyer" ? TOKENS.dark : 
+                               item.type === "pending" ? TOKENS.soft : "#e5e7eb",
+                    boxShadow: item.type === "pending" ? `0 0 0 2px rgba(200,227,210,0.4)` : "none",
+                  }}
+                />
+                <div className="flex-1 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-medium" style={{ color: TOKENS.dark }}>{item.event}</p>
+                    <p 
+                      className="text-[10px] font-bold"
+                      style={{ 
+                        color: item.type === "seller" ? TOKENS.accent : 
+                               item.type === "pending" ? "rgba(16,36,27,0.4)" : TOKENS.dark,
+                      }}
+                    >
+                      {item.price}
+                    </p>
+                  </div>
+                  <span className="text-[9px] opacity-40">{item.date}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Inspection Days Slider */}
+      <div className="px-4 py-3">
+        <div className="flex items-center gap-2 mb-3">
+          <div 
+            className="w-6 h-6 rounded-lg flex items-center justify-center"
+            style={{ background: `rgba(130,191,152,0.15)` }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={TOKENS.accent} strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-[10px] font-semibold" style={{ color: TOKENS.dark }}>Inspection Period</p>
+            <p className="text-[8px] opacity-50">Adjust your counter</p>
+          </div>
+        </div>
+
+        {/* Slider */}
+        <div className="mb-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[9px] opacity-40">Days</span>
+            <span 
+              className="text-base font-bold tabular-nums"
+              style={{ color: TOKENS.accent }}
+            >
+              {inspectionDays}
+            </span>
+          </div>
+          <input
+            type="range"
+            min="7"
+            max="21"
+            value={inspectionDays}
+            onChange={(e) => onInspectionChange(parseInt(e.target.value))}
+            className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+            style={{ 
+              background: `linear-gradient(to right, ${TOKENS.accent} ${((inspectionDays - 7) / 14) * 100}%, rgba(16,36,27,0.1) ${((inspectionDays - 7) / 14) * 100}%)`,
+            }}
+          />
+          <div className="flex justify-between mt-0.5">
+            <span className="text-[8px] opacity-30">7 days</span>
+            <span className="text-[8px] opacity-30">21 days</span>
+          </div>
+        </div>
+
+        {/* Quick Buttons */}
+        <div className="flex gap-1.5 mb-3">
+          {[10, 12, 14, 17].map((days) => (
+            <button
+              key={days}
+              onClick={() => onInspectionChange(days)}
+              className="flex-1 py-1.5 rounded-lg text-[10px] font-semibold transition-all hover:scale-[1.02] active:scale-[0.98]"
+              style={{
+                background: inspectionDays === days ? TOKENS.dark : "rgba(16,36,27,0.05)",
+                color: inspectionDays === days ? "white" : TOKENS.dark,
+              }}
+            >
+              {days}d
+            </button>
+          ))}
+        </div>
+
+        {/* Tip */}
+        <div 
+          className="p-2 rounded-lg flex items-start gap-2"
+          style={{ background: `rgba(130,191,152,0.08)` }}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={TOKENS.accent} strokeWidth="2" className="flex-shrink-0 mt-0.5">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <p className="text-[9px]" style={{ color: TOKENS.dark, opacity: 0.7 }}>
+            <span className="font-semibold">Tip:</span> Buyer offered 17 days. A 12-14 day counter is competitive.
+          </p>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div 
+        className="px-4 py-2.5 flex items-center gap-2"
+        style={{ background: "rgba(244,240,233,0.6)", borderTop: "1px solid rgba(16,36,27,0.04)" }}
+      >
+        {showConfirm ? (
+          <div className="flex items-center gap-2 flex-1 justify-center">
+            <div className="w-4 h-4 rounded-full flex items-center justify-center" style={{ background: TOKENS.accent }}>
+              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <span className="text-[10px] font-semibold" style={{ color: TOKENS.accent }}>Counter saved!</span>
+          </div>
+        ) : (
+          <>
+            <button
+              onClick={handleSave}
+              className="flex-1 h-8 rounded-lg text-[10px] font-semibold transition-all hover:scale-[1.02] active:scale-[0.98]"
+              style={{ background: TOKENS.dark, color: "white" }}
+            >
+              Save Counter ({inspectionDays} days)
+            </button>
+            <button
+              className="h-8 px-3 rounded-lg text-[10px] font-medium transition-all hover:scale-[1.02]"
+              style={{ background: "rgba(16,36,27,0.05)" }}
+            >
+              Preview
+            </button>
+          </>
+        )}
+      </div>
+
+      <style>{`
+        input[type="range"]::-webkit-slider-thumb {
+          appearance: none;
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background: ${TOKENS.dark};
+          cursor: pointer;
+          box-shadow: 0 2px 4px rgba(16,36,27,0.15);
+          border: 2px solid white;
+        }
+        input[type="range"]::-moz-range-thumb {
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background: ${TOKENS.dark};
+          cursor: pointer;
+          box-shadow: 0 2px 4px rgba(16,36,27,0.15);
+          border: 2px solid white;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// ============================================
+// EXISTING COMPONENTS
+// ============================================
+
 function CategoryIcon({ category }) {
   const iconMap = {
     Advisory: (
@@ -360,28 +745,33 @@ function CategoryIcon({ category }) {
         <polyline points="12 6 12 12 16 14" />
       </svg>
     ),
+    Comparison: (
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.7">
+        <rect x="2" y="3" width="8" height="18" rx="1" />
+        <rect x="14" y="3" width="8" height="18" rx="1" />
+      </svg>
+    ),
   };
   return iconMap[category] || iconMap.Advisory;
 }
 
-// Insight badge colors based on type
 const INSIGHT_STYLES = {
-  analysis: { bg: "rgba(99,102,241,0.12)", color: "#6366f1", border: "rgba(99,102,241,0.2)" },
-  form: { bg: "rgba(130,191,152,0.12)", color: "#059669", border: "rgba(130,191,152,0.2)" },
-  knowledge: { bg: "rgba(245,158,11,0.12)", color: "#d97706", border: "rgba(245,158,11,0.2)" },
-  timeline: { bg: "rgba(236,72,153,0.12)", color: "#db2777", border: "rgba(236,72,153,0.2)" },
+  analysis: { bg: "rgba(130,191,152,0.12)", color: TOKENS.dark, border: "rgba(130,191,152,0.25)" },
+  form: { bg: "rgba(130,191,152,0.12)", color: TOKENS.dark, border: "rgba(130,191,152,0.25)" },
+  knowledge: { bg: "rgba(16,36,27,0.08)", color: TOKENS.dark, border: "rgba(16,36,27,0.12)" },
+  timeline: { bg: "rgba(200,227,210,0.3)", color: TOKENS.dark, border: "rgba(200,227,210,0.5)" },
 };
 
-function MessageBubble({ message }) {
+function MessageBubble({ message, inspectionDays, onInspectionChange }) {
   const isUser = message.role === "user";
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"} animate-fadeIn`}>
       <div
-        className={`max-w-[85%] ${isUser ? "order-1" : "order-2"}`}
+        className={`max-w-[90%] ${isUser ? "order-1" : "order-2"}`}
         style={{ animation: "slideUp 0.3s ease-out" }}
       >
-        {/* Insight badge - shows above assistant messages for advisory responses */}
+        {/* Insight badge */}
         {!isUser && message.insight && (
           <div className="mb-1.5 flex items-center gap-1.5">
             <span
@@ -412,6 +802,17 @@ function MessageBubble({ message }) {
         >
           {message.content}
         </div>
+
+        {/* Comparison Chart - inline in chat */}
+        {message.showComparison && <InlinComparisonChart />}
+
+        {/* Counter Component - inline in chat */}
+        {message.showCounter && (
+          <InlineCounterComponent 
+            inspectionDays={inspectionDays} 
+            onInspectionChange={onInspectionChange} 
+          />
+        )}
 
         {/* Extracted data badge */}
         {message.structuredData && (
@@ -471,7 +872,6 @@ function ListeningOverlay() {
   return (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
       <div className="relative">
-        {/* Pulsing rings */}
         {[...Array(3)].map((_, i) => (
           <div
             key={i}
@@ -482,7 +882,6 @@ function ListeningOverlay() {
             }}
           />
         ))}
-        {/* Center mic icon */}
         <div
           className="relative w-20 h-20 rounded-full flex items-center justify-center"
           style={{ background: TOKENS.accent }}
@@ -503,7 +902,6 @@ function ListeningOverlay() {
   );
 }
 
-// Form field definitions for the transaction form
 const FORM_FIELDS = [
   { key: "property", label: "Property Address", icon: "home", section: "property" },
   { key: "status", label: "Status", icon: "status", section: "property" },
@@ -548,7 +946,6 @@ function TransactionSummary({ data, hasData }) {
   const totalCount = FORM_FIELDS.length;
   const progressPercent = (filledCount / totalCount) * 100;
   
-  // Track which fields were just added for animation
   const [prevData, setPrevData] = useState({});
   const [animatingFields, setAnimatingFields] = useState([]);
   
@@ -620,7 +1017,6 @@ function TransactionSummary({ data, hasData }) {
           
           return (
             <div key={section.id}>
-              {/* Section Header */}
               <div className="flex items-center gap-2 mb-2 px-1">
                 <div 
                   className="w-5 h-5 rounded-md flex items-center justify-center transition-all duration-300"
@@ -645,7 +1041,6 @@ function TransactionSummary({ data, hasData }) {
                 )}
               </div>
               
-              {/* Section Fields */}
               <div className="space-y-1.5">
                 {sectionFields.map((field) => {
                   const value = data[field.key];
@@ -661,7 +1056,6 @@ function TransactionSummary({ data, hasData }) {
                         border: isFilled ? "1px solid rgba(130,191,152,0.2)" : "1px dashed rgba(16,36,27,0.08)",
                       }}
                     >
-                      {/* Shimmer effect on fill */}
                       {isAnimating && (
                         <div 
                           className="absolute inset-0 shimmer-effect"
@@ -767,17 +1161,9 @@ function TransactionSummary({ data, hasData }) {
           animation: fieldEnter 0.5s ease-out;
         }
         @keyframes fieldEnter {
-          0% { 
-            transform: scale(0.95);
-            opacity: 0.5;
-          }
-          50% {
-            transform: scale(1.02);
-          }
-          100% { 
-            transform: scale(1);
-            opacity: 1;
-          }
+          0% { transform: scale(0.95); opacity: 0.5; }
+          50% { transform: scale(1.02); }
+          100% { transform: scale(1); opacity: 1; }
         }
         .shimmer-effect {
           animation: shimmer 0.6s ease-out;
@@ -790,4 +1176,3 @@ function TransactionSummary({ data, hasData }) {
     </div>
   );
 }
-
